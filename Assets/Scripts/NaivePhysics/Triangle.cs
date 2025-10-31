@@ -60,14 +60,14 @@ namespace NaivePhysics
 
         public override void DrawShape()
         {
-            
+
 
             foreach ((Vector2 p1, Vector2 p2) line in Lines)
             {
                 Gizmos.DrawLine(line.p1, line.p2);
             }
 
-            #if false
+#if false
             // draw out planes
             List<Plane> planes = new List<Plane>(Planes);
             for (int i = 0; i < m_worldCorners.Length; ++i)
@@ -79,7 +79,7 @@ namespace NaivePhysics
                 float fSize = Vector2.Distance(A, B);
                 Gizmos.DrawLine(vCenter, vCenter + (Vector2)planes[i].normal * fSize * 0.25f);
             }
-            #endif
+#endif
         }
 
         protected override void OnMoved()
