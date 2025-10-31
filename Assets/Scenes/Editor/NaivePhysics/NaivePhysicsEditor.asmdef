@@ -1,0 +1,16 @@
+{
+    "name": "NaivePhysicsEditor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:e58b322f2fa2b494c9b3e750aff65573"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

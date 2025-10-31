@@ -17,7 +17,7 @@ namespace NaivePhysics
 
         public const float              GRAVITY = 9.82f;
         public const float              DRAG = 0.3f;
-        public const float              BOUNCE = 0.4f;
+        public const float              BOUNCE = 0.99f;
         public const float              POSITION_CORRECTION = 0.3f;
         public const float              MAX_VELOCITY = 100.0f;
 

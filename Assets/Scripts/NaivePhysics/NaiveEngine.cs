@@ -37,7 +37,7 @@ namespace NaivePhysics
             }
 
             protected abstract Rect CalculateBounds();
-
+            public virtual void OnNaiveCollisionEnter(Shape other, Collision collision) { }
             public abstract void DrawShape();
 
             protected virtual void OnMoved()
