@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace NaivePhysics
@@ -12,13 +11,16 @@ namespace NaivePhysics
         [ExecuteInEditMode]
         public abstract class Shape : MonoBehaviour
         {
-            protected Rect m_bounds;
+            protected Rect              m_bounds;
+            protected HashSet<Shape>    m_touchingShapes = new HashSet<Shape>();
 
             #region Properties
 
             public Vector2 Position => transform.position;
 
             public Rect Bounds => m_bounds;
+
+            public bool ShouldHandleCollisions { get; set; } = false;
 
             #endregion
 
@@ -37,19 +39,60 @@ namespace NaivePhysics
             }
 
             protected abstract Rect CalculateBounds();
-            public virtual void OnNaiveCollisionEnter(Shape other, Collision collision) { }
+
             public abstract void DrawShape();
 
             protected virtual void OnMoved()
             {
                 m_bounds = CalculateBounds();
             }
+
+            protected virtual void OnNaiveCollisionEnter(Shape other, Collision collision)
+            {
+            }
+
+            protected virtual void OnNaiveCollisionExit(Shape other)
+            {
+            }
+
+            public void HandleCollisions(List<Collision> collisions)
+            {
+                // OnCollisionEnter
+                HashSet<Shape> newTouching = new HashSet<Shape>();
+                foreach (Collision collision in collisions)
+                {
+                    if (collision.Contains(this))
+                    {
+                        Shape other = collision.A == this ? collision.B :
+                                                            collision.A;
+                        newTouching.Add(other);
+
+                        // Boom! 
+                        if (!m_touchingShapes.Contains(other))
+                        {
+                            OnNaiveCollisionEnter(other, collision);
+                        }
+                    }
+                }
+
+                // OnCollisionLeaves
+                foreach (Shape other in m_touchingShapes)
+                {
+                    if (!newTouching.Contains(other))
+                    {
+                        OnNaiveCollisionExit(other);
+                    }
+                }
+
+                // update the touching set
+                m_touchingShapes = newTouching;
+            }
         }
 
         private class ShapeEdge
         {
-            public Shape m_shape;
-            public bool m_bLeft;
+            public Shape    m_shape;
+            public bool     m_bLeft;
 
             #region Properties
 
@@ -71,7 +114,6 @@ namespace NaivePhysics
             public abstract void TickConstraint();
         }
 
-
         #region Properties
 
         public Shape[] Shapes => GetComponentsInChildren<Shape>();
@@ -90,15 +132,6 @@ namespace NaivePhysics
                 constraint.TickConstraint();
             }
 
-            // temp wind!
-            /*
-            {
-                foreach (NaiveBody body in Bodies)
-                {
-                    body.AddForce(Vector2.right * 10.0f);
-                }
-            }*/
-
             // update all the bodies in the simulation
             foreach (NaiveBody body in Bodies)
             {
@@ -107,6 +140,15 @@ namespace NaivePhysics
 
             // get all collisions
             List<Collision> collisions = GetCollisionPairs_SweepAndPrune(out _);
+
+            // let shapes handle collisions
+            foreach (Shape shape in Shapes)
+            {
+                if (shape.ShouldHandleCollisions)
+                {
+                    shape.HandleCollisions(collisions);
+                }
+            }
 
             // resolve collisions
             foreach (Collision collision in collisions)
@@ -130,14 +172,17 @@ namespace NaivePhysics
                 List<Collision> shapeCollisions = collisions.FindAll(c => c.Contains(shape));
 
                 // draw line between collision shapes
-                foreach (Collision c in shapeCollisions)
+                if (shape.GetComponent<NaiveBody>() != null)
                 {
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawSphere(c.m_vPosition, 0.05f);
-                    Gizmos.color = Color.blue;
-                    Gizmos.DrawLine(shape.transform.position, shape.transform.position + (Vector3)c.GetNormal(shape) * 0.5f);
-                    Gizmos.color = Color.green;
-                    Gizmos.DrawLine(c.m_vPosition - c.m_vNormalAB * c.m_fPenetration * 0.5f, c.m_vPosition + c.m_vNormalAB * c.m_fPenetration * 0.5f);
+                    foreach (Collision c in shapeCollisions)
+                    {
+                        Gizmos.color = Color.red;
+                        Gizmos.DrawSphere(c.m_vPosition, 0.05f);
+                        Gizmos.color = Color.blue;
+                        Gizmos.DrawLine(shape.transform.position, shape.transform.position + (Vector3)c.GetNormal(shape) * 0.5f);
+                        Gizmos.color = Color.green;
+                        Gizmos.DrawLine(c.m_vPosition - c.m_vNormalAB * c.m_fPenetration * 0.5f, c.m_vPosition + c.m_vNormalAB * c.m_fPenetration * 0.5f);
+                    }
                 }
 
                 // draw shape bounds                
@@ -167,7 +212,7 @@ namespace NaivePhysics
                 {
                     iNumPerformedTests++;
                     Collision collision = Overlaps(shapes[i], shapes[j]);
-                    if (collision != null)
+                    if(collision != null)
                     {
                         result.Add(collision);
                     }
@@ -242,19 +287,19 @@ namespace NaivePhysics
             Triangle triangleA = A as Triangle;
             Triangle triangleB = B as Triangle;
 
-            if (sphereA != null && sphereB != null) return Overlap_SphereSphere(sphereA, sphereB);
-            if (boxA != null && boxB != null) return Overlap_BoxBox(boxA, boxB);
-            if (sphereA != null && boxB != null) return Overlap_SphereBox(sphereA, boxB);
-            if (boxA != null && sphereB != null) return Overlap_SphereBox(sphereB, boxA);
-            
-            //if (triangleA != null && triangleB != null) return Overlap_TriangleTriangle(triangleA, triangleB);
-            //if (triangleA != null && sphereB != null)   return Overlap_TriangleSphere(triangleA, sphereB);
-            //if (triangleB != null && sphereA != null)   return Overlap_TriangleSphere(triangleB, sphereA);
-            //if (triangleA != null && boxB != null)      return Overlap_TriangleBox(triangleA, boxB);
-            //if (triangleB != null && boxA != null)      return Overlap_TriangleBox(triangleB, boxA);
-            
+            if (sphereA != null && sphereB != null)     return Overlap_SphereSphere(sphereA, sphereB);
+            if (boxA != null && boxB != null)           return Overlap_BoxBox(boxA, boxB);
+            if (sphereA != null && boxB != null)        return Overlap_SphereBox(sphereA, boxB);
+            if (boxA != null && sphereB != null)        return Overlap_SphereBox(sphereB, boxA);
+            /*
+            if (triangleA != null && triangleB != null) return Overlap_TriangleTriangle(triangleA, triangleB);
+            if (triangleA != null && sphereB != null)   return Overlap_TriangleSphere(triangleA, sphereB);
+            if (triangleB != null && sphereA != null)   return Overlap_TriangleSphere(triangleB, sphereA);
+            if (triangleA != null && boxB != null)      return Overlap_TriangleBox(triangleA, boxB);
+            if (triangleB != null && boxA != null)      return Overlap_TriangleBox(triangleB, boxA);
+            */
 
-            //default: no overlap!
+            // default: no overlap!
             return null;
         }
 
@@ -294,19 +339,19 @@ namespace NaivePhysics
             float fOverlapY = vExtentsA.y + vExtentsB.y - Mathf.Abs(vAtoB.y);
 
             Vector2 vCollisionNormal = fOverlapX < fOverlapY ? new Vector2(Mathf.Sign(vAtoB.x), 0.0f) :
-                                                               new Vector2(0.0f, Mathf.Sign(vAtoB.y));
+                                                               new Vector2(0.0f, Mathf.Sign(vAtoB.y)); 
 
             return new Collision
             {
-                A = boxA,
+                A = boxA, 
                 B = boxB,
-                m_vPosition = (vA + vB) * 0.5f,        // TODO: should calculate the center of the overlapped area!
+                m_vPosition = (vA + vB ) * 0.5f,        // TODO: should calculate the center of the overlapped area!
                 m_vNormalAB = vCollisionNormal,
                 m_fPenetration = fOverlapX < fOverlapY ? fOverlapX : fOverlapY
             };
         }
 
-        
+        /*
         private static bool Overlap_TriangleTriangle(Triangle triangleA, Triangle triangleB)
         {
             // Triangle A => Triangle B
@@ -330,7 +375,7 @@ namespace NaivePhysics
             }
 
             return true;
-        }
+        }*/
 
         private static Collision Overlap_SphereBox(Sphere sphereA, AlignedBox boxB)
         {
@@ -365,24 +410,24 @@ namespace NaivePhysics
             }
 
             return bestCollision;
+            
+        /*
+            Vector2 vPosA = sphereA.transform.position;
+            Rect boundsB = boxB.Bounds;
 
-            /*
-                Vector2 vPosA = sphereA.transform.position;
-                Rect boundsB = boxB.Bounds;
-
-                // is the sphere inside the box?        // TODO: Calculate collision for spere inside box case
-                if (vPosA.x >= boundsB.xMin &&
-                    vPosA.x <= boundsB.xMax &&
-                    vPosA.y >= boundsB.yMin &&
-                    vPosA.y <= boundsB.yMax)
-                {
-                    return true;
-                }
+            // is the sphere inside the box?        // TODO: Calculate collision for spere inside box case
+            if (vPosA.x >= boundsB.xMin &&
+                vPosA.x <= boundsB.xMax &&
+                vPosA.y >= boundsB.yMin &&
+                vPosA.y <= boundsB.yMax)
+            {
+                return true;
+            }
 
 
 
-                // nope... all good!
-                return false;*/
+            // nope... all good!
+            return false;*/
         }
 
         /*

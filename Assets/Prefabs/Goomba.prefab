@@ -258,8 +258,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8777452412991296016}
-  - component: {fileID: 40096246149455230}
-  - component: {fileID: 684244584276667005}
+  - component: {fileID: 2282382963567426823}
+  - component: {fileID: 1907428916125870509}
   m_Layer: 0
   m_Name: Goomba
   m_TagString: Untagged
@@ -285,7 +285,7 @@ Transform:
   - {fileID: 2806273684195087772}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
---- !u!114 &40096246149455230
+--- !u!114 &2282382963567426823
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -294,20 +294,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 6590226242970334850}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8e8e8a471fd846746801f0ea07bea93d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_vSize: {x: 0.5, y: 0.5}
---- !u!114 &684244584276667005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6590226242970334850}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1108d660f64c8c4b99cbfc2854d5966, type: 3}
+  m_Script: {fileID: 11500000, guid: abd42054a8613d24a95552b986842a9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_fMass: 1
+--- !u!114 &1907428916125870509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6590226242970334850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cb4805b47dce2b4c8d827a6921bfc04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_fRadius: 0.25

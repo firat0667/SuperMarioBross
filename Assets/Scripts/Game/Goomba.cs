@@ -87,7 +87,17 @@ namespace Game
                 transform.Find("LeftFoot")
             };
 
+            // this is a short way of under ones
             Vector3[] localPositions = System.Array.ConvertAll(feet, f => f.localPosition);
+
+            // they are equals 
+            //Vector3[] localPositions= new Vector3[feet.Length];
+            //for(int i=0; i<feet.Length; i++)
+            //{
+            //    localPositions[i]=feet[i].localPosition;
+            //}
+
+
             float fTime = 0.0f;
 
             while (true)
